@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Atari Pong</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #000;
+        }
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background: #000;
+            border: 2px solid #fff;
+        }
+        .paddle {
+            position: absolute;
+            width: 15px;
+            height: 80px;
+            background: #fff;
+        }
+        #ball {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        .score {
+            position: absolute;
+            color: #fff;
+            font-size: 2em;
+            font-family: 'Courier New', monospace;
+            top: 20px;
+        }
+        #player1Score {
+            left: 30%;
+        }
+        #player2Score {
+            right: 30%;
+        }
+        .center-line {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #fff;
+            left: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="player1" class="paddle"></div>
+        <div id="player2" class="paddle"></div>
+        <div id="ball"></div>
+        <div id="player1Score" class="score">0</div>
+        <div id="player2Score" class="score">0</div>
+        <div class="center-line" style="top: 0;"></div>
+        <div class="center-line" style="top: 40px;"></div>
+        <div class="center-line" style="top: 80px;"></div>
+        <div class="center-line" style="top: 120px;"></div>
+        <div class="center-line" style="top: 160px;"></div>
+        <div class="center-line" style="top: 200px;"></div>
+        <div class="center-line" style="top: 240px;"></div>
+        <div class="center-line" style="top: 280px;"></div>
+        <div class="center-line" style="top: 320px;"></div>
+        <div class="center-line" style="top: 360px;"></div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const player1 = document.getElementById('player1');
+        const player2 = document.getElementById('player2');
+        const ball = document.getElementById('ball');
+        const player1Score = document.getElementById('player1Score');
+        const player2Score = document.getElementById('player2Score');
+
+        // Initial positions
+        let player1Y = 160;
+        let player2Y = 160;
+        let ballX = 395;
+        let ballY = 195;
+        let ballSpeedX = 4;
+        let ballSpeedY = 4;
+        let score1 = 0;
+        let score2 = 0;
+        let mouseOffset = 0;
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // Added volume control slider in CSS
+        .volume-slider {
+            position: absolute;
+            bottom: 20px;
+            width: 150px;
+            accent-color: #fff;
+        }
+        
+        // Modified audio context initialization
+        let globalGain = audioContext.createGain();
+        globalGain.connect(audioContext.destination);
+        
+        // Updated playBeep function with volume control
+        function playBeep(frequency, duration) {
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = 'square';
+            oscillator.connect(globalGain);
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Added volume control UI in HTML
+        <div id="volumeControl" class="volume-slider">
+            <input type="range" min="0" max="1" value="0.5" step="0.1">
+        </div>
+        
+        // Volume control event listener
+        document.querySelector('.volume-slider input').addEventListener('input', (e) => {
+            globalGain.gain.setValueAtTime(e.target.value, audioContext.currentTime);
+        });
+        function playBeep(frequency = 440, duration = 0.1) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.type = 'square';
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Paddle setup
+        player1.style.left = '20px';
+        player2.style.right = '20px';
+
+        // Mouse control for left paddle
+        gameContainer.addEventListener('mousemove', function(e) {
+            const rect = gameContainer.getBoundingClientRect();
+            let mouseY = e.clientY - rect.top;
+            // Center paddle on mouse
+            player1Y = Math.max(0, Math.min(320, mouseY - 40));
+        });
+
+        // Game loop
+        function updateGame() {
+            // Move paddles
+            player1.style.top = player1Y + 'px';
+            // AI for right paddle: follow the ball with some smoothing
+            let aiCenter = player2Y + 40;
+            if (aiCenter < ballY) {
+                player2Y = Math.min(320, player2Y + 4);
+            } else if (aiCenter > ballY) {
+                player2Y = Math.max(0, player2Y - 4);
+            }
+            player2.style.top = player2Y + 'px';
+
+            // Ball movement
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+
+            // Wall collision
+            if (ballY <= 0 || ballY >= 390) {
+                ballSpeedY = -ballSpeedY;
+            playBeep(150, 0.05); // Authentic wall 'blip'
+            }
+
+            // Paddle collision
+            if ((ballX <= 35 && ballY >= player1Y && ballY <= player1Y + 80) ||
+                (ballX >= 750 && ballY >= player2Y && ballY <= player2Y + 80)) {
+                ballSpeedX = -ballSpeedX;
+                playBeep(250, 0.1); // Paddle collision 'buzz'
+            }
+
+            // Scoring
+            if (ballX <= 0) {
+                score2++;
+                player2Score.textContent = score2;
+                resetBall();
+                playBeep(350, 0.2); // Scoring 'honk'
+            playBeep(175, 0.2); // Lower tone for scoring harmony
+            }
+            if (ballX >= 790) {
+                score1++;
+                player1Score.textContent = score1;
+                resetBall();
+                playBeep(350, 0.2); // Scoring 'honk'
+            playBeep(175, 0.2); // Lower tone for scoring harmony
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function resetBall() {
+            ballX = 395;
+            ballY = 195;
+            ballSpeedX = Math.random() > 0.5 ? 4 : -4;
+            ballSpeedY = Math.random() > 0.5 ? 4 : -4;
+        }
+
+        // Controls
+        // document.addEventListener('keydown', (e) => {
+        //     switch(e.key) {
+        //         case 'w':
+        //             player1Y = Math.max(0, player1Y - 20);
+        //             break;
+        //         case 's':
+        //             player1Y = Math.min(320, player1Y + 20);
+        //             break;
+        //         case 'ArrowUp':
+        //             player2Y = Math.max(0, player2Y - 20);
+        //             break;
+        //         case 'ArrowDown':
+        //             player2Y = Math.min(320, player2Y + 20);
+        //             break;
+        //     }
+        // });
+
+        // Start game
+        updateGame();
+    </script>
+</body>
+</html>
