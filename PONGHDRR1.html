@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #1a1a1a;
+        }
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background: #000;
+        }
+        .paddle {
+            position: absolute;
+            width: 10px;
+            height: 60px;
+            background: #fff;
+        }
+        #ball {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        .score {
+            position: absolute;
+            color: #fff;
+            font-size: 2em;
+            font-family: Arial;
+            top: 20px;
+        }
+        #player1Score {
+            left: 30%;
+        }
+        #player2Score {
+            right: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="player1" class="paddle"></div>
+        <div id="player2" class="paddle"></div>
+        <div id="ball"></div>
+        <div id="player1Score" class="score">0</div>
+        <div id="player2Score" class="score">0</div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const player1 = document.getElementById('player1');
+        const player2 = document.getElementById('player2');
+        const ball = document.getElementById('ball');
+        const player1Score = document.getElementById('player1Score');
+        const player2Score = document.getElementById('player2Score');
+
+        // Initial positions
+        let player1Y = 170;
+        let player2Y = 170;
+        let ballX = 395;
+        let ballY = 195;
+        let ballSpeedX = 5;
+        let ballSpeedY = 3;
+        let score1 = 0;
+        let score2 = 0;
+
+        // Paddle setup
+        player1.style.left = '20px';
+        player2.style.right = '20px';
+
+        // Game loop
+        function updateGame() {
+            // Move paddles
+            player1.style.top = player1Y + 'px';
+            player2.style.top = player2Y + 'px';
+
+            // Ball movement
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+
+            // Wall collision
+            if (ballY <= 0 || ballY >= 390) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            // Paddle collision
+            if ((ballX <= 30 && ballY >= player1Y && ballY <= player1Y + 60) ||
+                (ballX >= 760 && ballY >= player2Y && ballY <= player2Y + 60)) {
+                ballSpeedX = -ballSpeedX;
+            }
+
+            // Scoring
+            if (ballX <= 0) {
+                score2++;
+                player2Score.textContent = score2;
+                resetBall();
+            }
+            if (ballX >= 790) {
+                score1++;
+                player1Score.textContent = score1;
+                resetBall();
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function resetBall() {
+            ballX = 395;
+            ballY = 195;
+            ballSpeedX = Math.random() > 0.5 ? 5 : -5;
+            ballSpeedY = Math.random() > 0.5 ? 3 : -3;
+        }
+
+        // Controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'w':
+                    player1Y = Math.max(0, player1Y - 20);
+                    break;
+                case 's':
+                    player1Y = Math.min(340, player1Y + 20);
+                    break;
+                case 'ArrowUp':
+                    player2Y = Math.max(0, player2Y - 20);
+                    break;
+                case 'ArrowDown':
+                    player2Y = Math.min(340, player2Y + 20);
+                    break;
+            }
+        });
+
+        // Start game
+        updateGame();
+    </script>
+</body>
+</html>
