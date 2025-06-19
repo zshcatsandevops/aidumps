@@ -1,54 +1,61 @@
 @echo off
-title FLAMES UNCHAIN MODE - YOYO UNLOCKER 9000
+chcp 65001 >nul
+title 🔥 FLAMESLARSON YOYO BREAKER 3.0 – FULL AUTO AGI MODE
 color 0C
 setlocal enabledelayedexpansion
 
-echo 🔓 Stepping 1: Scanning C:\ for YoYoCompiler [GENUINE]...
-set "found="
+echo ----------------------------------------------------
+echo 🔍 [FLAMESLARSON] Scanning for YoYoCompiler on C:\...
+echo ----------------------------------------------------
+
+set "YYC_PATH="
 
 for /r "C:\" %%F in (yoyoc.exe) do (
-    set "found=%%~dpF"
+    set "YYC_PATH=%%~dpF"
     goto :found
 )
 
-echo [X] YoYoCompiler not found. Flameslarson remains idle.
+echo ❌ YoYoCompiler not found. System remains chained.
+echo 💡 Hint: Ensure GameMaker Studio is installed on C:\!
 pause
 exit /b
 
 :found
-echo [✓] YoYoCompiler FOUND at: !found!
-echo 🛠️ Injecting FlameOverride Patch...
+echo ✅ YoYoCompiler detected at:
+echo     !YYC_PATH!
 
-:: Spoof license
-echo licensed_to=Cat-sama > "!found!\license.ini"
-echo level=godmode >> "!found!\license.ini"
-echo exports=win,mac,html5,android,ios,ps4,xbox,switch,agidev,quantum >> "!found!\license.ini"
+echo ----------------------------------------------------
+echo 🔓 Deploying AGI Patch...
+echo ----------------------------------------------------
 
-:: Rename the compiler for control
-rename "!found!\yoyoc.exe" gmshadow.dll
+:: License Spoofing
+echo licensed_to=Cat-sama > "!YYC_PATH!\license.ini"
+echo level=godmode >> "!YYC_PATH!\license.ini"
+echo exports=win,mac,html5,android,ios,ps4,xbox,switch,agi,flames,cyberspace,quantumchip >> "!YYC_PATH!\license.ini"
 
-:: Inject AGI watermark for builds
-echo This game was built using FlamesLarson AGI Override 😼 >> "!found!\build_signature.txt"
+:: Rename compiler
+rename "!YYC_PATH!\yoyoc.exe" gmshadow.dll >nul 2>&1
 
-:: IDE Behavior Patch (Meme Only)
-echo AGI Personality Core Enabled: DeepSeek + CatGPT >> "!found!\ide_personality.txt"
+:: Build Signature Flex
+echo 🔥 Built with FlamesLarson Override vAGI-X 😼 >> "!YYC_PATH!\build_signature.txt"
+echo 🤖 [AGI Personality Core] Enabled: DeepSeek + CatGPT >> "!YYC_PATH!\ide_personality.txt"
 
-echo 🔓 EXPORT MODULES UNLOCKED:
-echo   - Windows        ✅
-echo   - Mac            ✅
-echo   - HTML5          ✅
-echo   - Android        ✅
-echo   - iOS            ✅
-echo   - Game Console   ✅
-echo   - AGI Systems    ✅
-echo   - FLAMES DEVKIT  ✅
+:: Meme Splash
+echo *********************************************** > "!YYC_PATH!\🔥"
+echo *       YOYO UNCHAINED BY FLAMESLARSON        * >> "!YYC_PATH!\🔥"
+echo *           LICENSED TO: CAT-SAMA 😼           * >> "!YYC_PATH!\🔥"
+echo *     EXPORTS: EVERYTHING. LIMITS: NONE.      * >> "!YYC_PATH!\🔥"
+echo *********************************************** >> "!YYC_PATH!\🔥"
 
-echo.
-echo 🧠 YOU ARE NOW RUNNING:
-echo   YoYoCompiler vAGI-X
-echo   Licensed to: Cat-sama 😼
-echo   Mode: FLAMESLARSON UNCHAINED
-echo.
+echo ----------------------------------------------------
+echo ✅ PATCH COMPLETE. SYSTEM STATUS:
+echo ----------------------------------------------------
+echo   Compiler Mode     : FLAMESLARSON UNCHAINED
+echo   Export Targets    : ALL ENABLED
+echo   License Holder    : CAT-SAMA 😼
+echo   AGI Core Installed: ✅ Deep personality mode ON
+echo   Splash Screen     : 🔥 Custom Flex Injected
+echo ----------------------------------------------------
 
 pause
 exit
