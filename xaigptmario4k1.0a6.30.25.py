@@ -1,0 +1,252 @@
+import pygame
+import asyncio
+import platform
+
+# Initialize Pygame
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Mario Forever - SMB3 GBA Style")
+clock = pygame.time.Clock()
+FPS = 60
+
+# Colors to match SMB3 GBA palette
+SKY_BLUE = (107, 140, 255)
+GROUND_BROWN = (139, 69, 19)
+BLOCK_YELLOW = (255, 215, 0)
+BLOCK_ORANGE = (255, 165, 0)
+MARIO_SKIN = (255, 222, 173)
+MARIO_RED = (200, 0, 0)
+MARIO_BLUE = (0, 0, 139)
+MARIO_SHOES = (139, 69, 19)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+FLAGPOLE_GRAY = (169, 169, 169)
+GREEN = (0, 128, 0)
+
+# Game state with updated level structure
+worlds = [
+    {"level": [
+        {"type": "ground", "x": 0, "y": 500, "w": 2000, "h": 100},
+        {"type": "block", "x": 400, "y": 400, "w": 100, "h": 50},
+        {"type": "block", "x": 600, "y": 300, "w": 100, "h": 50},
+        {"type": "block", "x": 1200, "y": 400, "w": 100, "h": 50},
+        {"type": "ground", "x": 1800, "y": 500, "w": 200, "h": 100}
+    ], "flagpole": [1900, 200]},
+    {"level": [
+        {"type": "ground", "x": 0, "y": 500, "w": 2000, "h": 100},
+        {"type": "block", "x": 300, "y": 350, "w": 150, "h": 50},
+        {"type": "block", "x": 700, "y": 400, "w": 100, "h": 50},
+        {"type": "block", "x": 1500, "y": 300, "w": 100, "h": 50}
+    ], "flagpole": [1900, 200]},
+    {"level": [
+        {"type": "ground", "x": 0, "y": 500, "w": 2000, "h": 100},
+        {"type": "block", "x": 500, "y": 400, "w": 100, "h": 50},
+        {"type": "block", "x": 800, "y": 300, "w": 100, "h": 50},
+        {"type": "block", "x": 1400, "y": 350, "w": 150, "h": 50}
+    ], "flagpole": [1900, 200]},
+    {"level": [
+        {"type": "ground", "x": 0, "y": 500, "w": 2000, "h": 100},
+        {"type": "block", "x": 600, "y": 350, "w": 100, "h": 50},
+        {"type": "block", "x": 900, "y": 400, "w": 100, "h": 50},
+        {"type": "block", "x": 1600, "y": 300, "w": 100, "h": 50}
+    ], "flagpole": [1900, 200]},
+    {"level": [
+        {"type": "ground", "x": 0, "y": 500, "w": 2000, "h": 100},
+        {"type": "block", "x": 400, "y": 400, "w": 150, "h": 50},
+        {"type": "block", "x": 700, "y": 300, "w": 100, "h": 50},
+        {"type": "block", "x": 1300, "y": 350, "w": 100, "h": 50}
+    ], "flagpole": [1900, 200]},
+]
+current_world = 0
+score = 0
+game_complete = False
+
+# Mario properties
+mario_x, mario_y = 50, 450
+mario_width, mario_height = 32, 32
+mario_vx, mario_vy = 0, 0
+mario_jumping = False
+mario_frame = 0
+mario_direction = 1  # 1 for right, -1 for left
+camera_x = 0
+
+# Draw Mario with enhanced GBA-style details
+def draw_mario(surface, x, y, frame, direction, is_jumping):
+    mario_surface = pygame.Surface((mario_width, mario_height), pygame.SRCALPHA)
+    # Head
+    pygame.draw.ellipse(mario_surface, MARIO_SKIN, (8, 4, 16, 12))
+    # Hat with brim
+    if direction == 1:
+        hat_points = [(8, 4), (12, 4), (12, 6), (20, 6), (20, 4), (24, 4), (24, 8), (16, 8), (16, 12), (8, 12)]
+    else:
+        hat_points = [(mario_width - p[0], p[1]) for p in [(8, 4), (12, 4), (12, 6), (20, 6), (20, 4), (24, 4), (24, 8), (16, 8), (16, 12), (8, 12)]]
+    pygame.draw.polygon(mario_surface, MARIO_RED, hat_points)
+    # Eyes with pupils
+    eye_x = 18 if direction == 1 else 10
+    pygame.draw.rect(mario_surface, WHITE, (eye_x, 8, 4, 4))
+    pygame.draw.rect(mario_surface, BLACK, (eye_x + 1, 9, 2, 2))
+    # Mustache
+    mustache_x = 14 if direction == 1 else 10
+    pygame.draw.rect(mario_surface, BLACK, (mustache_x, 12, 4, 2))
+    # Body
+    pygame.draw.rect(mario_surface, MARIO_RED, (8, 16, 16, 8))
+    pygame.draw.rect(mario_surface, MARIO_BLUE, (8, 20, 16, 8))
+    # Buttons on overalls 
+    pygame.draw.circle(mario_surface, BLOCK_YELLOW, (12, 22), 2)
+    pygame.draw.circle(mario_surface, BLOCK_YELLOW, (20, 22), 2)
+    # Arms
+    if is_jumping:
+        pygame.draw.rect(mario_surface, MARIO_RED, (4, 12, 8, 8))
+        pygame.draw.rect(mario_surface, MARIO_RED, (20, 12, 8, 8))
+        pygame.draw.rect(mario_surface, MARIO_SKIN, (4, 12, 4, 4))
+        pygame.draw.rect(mario_surface, MARIO_SKIN, (24, 12, 4, 4))
+    else:
+        arm_x = 4 if frame == 0 else 0
+        if direction == -1:
+            arm_x = mario_width - arm_x - 8
+        pygame.draw.rect(mario_surface, MARIO_RED, (arm_x, 16, 8, 8))
+        hand_x = arm_x + 4 if direction == 1 else arm_x
+        pygame.draw.rect(mario_surface, MARIO_SKIN, (hand_x, 20, 4, 4))
+    # Legs
+    leg_x = 8 if frame == 0 else 12
+    if direction == -1:
+        leg_x = mario_width - leg_x - 8
+    pygame.draw.rect(mario_surface, MARIO_BLUE, (leg_x, 28, 8, 4))
+    pygame.draw.rect(mario_surface, MARIO_SHOES, (leg_x, 30, 8, 2))
+    surface.blit(mario_surface, (x - camera_x, y))
+
+# Draw level with ground and block distinction
+def draw_level(surface, level):
+    for platform in level:
+        type = platform["type"]
+        x, y, w, h = platform["x"], platform["y"], platform["w"], platform["h"]
+        if type == "ground":
+            pygame.draw.rect(surface, GROUND_BROWN, (x - camera_x, y, w, h))
+            pygame.draw.rect(surface, GREEN, (x - camera_x, y - 4, w, 4))
+            for i in range(0, w, 16):
+                for j in range(0, h, 16):
+                    pygame.draw.rect(surface, (160, 82, 45), (x - camera_x + i, y + j, 16, 16), 1)
+        elif type == "block":
+            pygame.draw.rect(surface, BLOCK_YELLOW, (x - camera_x, y, w, h))
+            pygame.draw.rect(surface, BLOCK_ORANGE, (x - camera_x, y, w, h), 2)
+
+# Draw flagpole with flag
+def draw_flagpole(surface, x, y):
+    pygame.draw.line(surface, FLAGPOLE_GRAY, (x - camera_x, y), (x - camera_x, y + 300), 4)
+    flag_points = [(x - camera_x, y), (x - camera_x - 20, y + 10), (x - camera_x, y + 20)]
+    pygame.draw.polygon(surface, GREEN, flag_points)
+
+# Draw game complete screen
+def draw_game_complete(surface):
+    surface.fill(SKY_BLUE)
+    font = pygame.font.SysFont("arial", 48)
+    text = font.render("Game Complete!", True, WHITE)
+    surface.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - 100))
+    draw_mario(surface, WIDTH // 2 - 16, HEIGHT // 2, 0, 1, False)
+    pygame.display.flip()
+
+# Collision detection updated for dictionary structure
+def check_collision(x, y, width, height, platforms):
+    mario_rect = pygame.Rect(x, y, width, height)
+    for platform in platforms:
+        plat_rect = pygame.Rect(platform["x"], platform["y"], platform["w"], platform["h"])
+        if mario_rect.colliderect(plat_rect):
+            return platform
+    return None
+
+# Main game setup
+def setup():
+    global mario_x, mario_y, mario_vx, mario_vy, mario_jumping, camera_x, score
+    mario_x, mario_y = 50, 450
+    mario_vx, mario_vy = 0, 0
+    mario_jumping = False
+    camera_x = 0
+    score = 0
+
+# Main game loop
+async def main():
+    global mario_x, mario_y, mario_vx, mario_vy, mario_jumping, mario_frame, mario_direction
+    global camera_x, current_world, score, game_complete
+    setup()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Input handling
+        keys = pygame.key.get_pressed()
+        mario_vx = 0
+        if keys[pygame.K_LEFT]:
+            mario_vx = -5
+            mario_direction = -1
+        if keys[pygame.K_RIGHT]:
+            mario_vx = 5
+            mario_direction = 1
+        if keys[pygame.K_SPACE] and not mario_jumping:
+            mario_vy = -15
+            mario_jumping = True
+
+        # Physics
+        mario_vy += 0.8  # Gravity
+        mario_x += mario_vx
+        mario_y += mario_vy
+
+        # Animation
+        if mario_vx != 0:
+            mario_frame = (mario_frame + 1) % 20
+        else:
+            mario_frame = 0
+
+        # Collision with platforms
+        collision = check_collision(mario_x, mario_y, mario_width, mario_height, worlds[current_world]["level"])
+        if collision:
+            if mario_vy > 0:  # Landing
+                mario_y = collision["y"] - mario_height
+                mario_vy = 0
+                mario_jumping = False
+            elif mario_vy < 0:  # Hitting head
+                mario_y = collision["y"] + collision["h"]
+                mario_vy = 0
+
+        # Check for pits
+        if mario_y > HEIGHT:
+            setup()  # Restart level
+
+        # Check for flagpole
+        flagpole = worlds[current_world]["flagpole"]
+        if mario_x >= flagpole[0] and mario_y >= flagpole[1]:
+            score += 100
+            current_world += 1
+            if current_world >= len(worlds):
+                game_complete = True
+                running = False
+            else:
+                setup()
+
+        # Camera follow
+        camera_x = max(0, mario_x - WIDTH // 2)
+
+        # Drawing
+        screen.fill(SKY_BLUE)
+        draw_level(screen, worlds[current_world]["level"])
+        draw_flagpole(screen, flagpole[0], flagpole[1])
+        draw_mario(screen, mario_x, mario_y, mario_frame // 10, mario_direction, mario_jumping)
+        font = pygame.font.SysFont("arial", 24)
+        text = font.render(f"World {current_world + 1}-1 Score: {score}", True, WHITE)
+        screen.blit(text, (10, 10))
+        pygame.display.flip()
+
+        await asyncio.sleep(1.0 / FPS)
+
+    if game_complete:
+        draw_game_complete(screen)
+        await asyncio.sleep(5.0)  # Show completion screen for 5 seconds
+
+# Run game
+if platform.system() == "Emscripten":
+    asyncio.ensure_future(main())
+else:
+    if __name__ == "__main__":
+        asyncio.run(main())
