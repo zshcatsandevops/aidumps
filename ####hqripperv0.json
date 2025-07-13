@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "AGENTLLMContextOptimus": {
+      "command": "python",
+      "args": [
+        "hq_ripper.py"
+      ],
+      "description": "AGENTLLMContextOptimus — Interactive AI-driven code runner with terminal selector (Unix/Windows), infinite code session, and session log. HQ RIPPER 1.0X boot banner and real shell code execution. Persistent coding environment for step-by-step app building with full session context.",
+      "permissions": [
+        "root_unix",
+        "admin_windows",
+        "read_write_all_files",
+        "network_access",
+        "interactive_shell_access",
+        "persist_logs"
+      ],
+      "autogpt_mode": true,
+      "auto_continue": true,
+      "memory": {
+        "type": "vector",
+        "size": 32768,
+        "persist": true
+      },
+      "shell_selector": {
+        "unix": "/bin/bash",
+        "windows": "cmd.exe"
+      },
+      "features": {
+        "code_execution": true,
+        "web_search": true,
+        "file_io": true,
+        "step_by_step": true,
+        "auto_chain": true,
+        "persistent_context": true,
+        "session_recovery": true,
+        "auto_stop": true
+      },
+      "boot_banner": "==============================\n HQ RIPPER 1.0X (AGENTLLM Optimus)\n Persistent AutoGPT AGI - Full Root/Win Admin\n==============================",
+      "auto_stop_config": {
+        "stop_on_completion": true,
+        "stop_conditions": [
+          "output contains 'Task Complete' or 'Done' or custom keyword",
+          "end of prompt detected",
+          "no further actions needed"
+        ]
+      }
+    }
+  }
+}
