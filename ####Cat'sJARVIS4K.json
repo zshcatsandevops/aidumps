@@ -1,0 +1,65 @@
+{
+  "mcpServers": {
+    "CatGPT1.0X": {
+      "command": "python3",
+      "args": ["catgpt_core.py"],
+      "description": "CatGPT 1.0X — Jarvis-class Autonomous AI suite. Real-time code runner, shell interface, persistent AGI context, live news/weather, voice/speech IO, auto-coding, device orchestration, and translation.",
+      "permissions": [
+        "root_unix",
+        "admin_windows",
+        "read_write_all_files",
+        "network_access",
+        "interactive_shell_access",
+        "persist_logs",
+        "voice_in_out",
+        "hardware_interface",
+        "webcam_mic_control"
+      ],
+      "autogpt_mode": true,
+      "auto_continue": true,
+      "memory": {
+        "type": "vector",
+        "size": 65536,
+        "persist": true,
+        "cloud_sync": true
+      },
+      "shell_selector": {
+        "unix": "/bin/bash",
+        "windows": "powershell.exe"
+      },
+      "features": {
+        "code_execution": true,
+        "web_search": true,
+        "file_io": true,
+        "step_by_step": true,
+        "auto_chain": true,
+        "persistent_context": true,
+        "session_recovery": true,
+        "auto_stop": true,
+        "translate": true,
+        "voice_assistant": true,
+        "news_weather": true,
+        "multi_device": true,
+        "scheduled_tasks": true,
+        "remote_control": true,
+        "user_state_aware": true,
+        "vibe_detection": true,
+        "ai_autopilot": true
+      },
+      "boot_banner": "==============================\\n CatGPT 1.0X (JARVIS+Pliny Class)\\n Autonomous AGI, Codes in your Sleep, True System Integration\\n==============================",
+      "auto_stop_config": {
+        "stop_on_completion": true,
+        "stop_conditions": [
+          "output contains 'Task Complete' or 'Done' or custom keyword",
+          "end of prompt detected",
+          "no further actions needed"
+        ]
+      },
+      "scheduler": {
+        "enable_sleep_tasks": true,
+        "wake_on_remote": true,
+        "tasks_when_user_away": true
+      }
+    }
+  }
+}
